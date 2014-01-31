@@ -2,6 +2,8 @@ if(!window.appLoad){
     var appconfig = require("./package.json");
     window.appLoad = function(gui) {
         
+        var APP_NAME = "nw-ace-kc";
+        
         var ace = window.ace;
         
         var detectedMode;
@@ -9,7 +11,7 @@ if(!window.appLoad){
         var Range = ace.require("ace/range").Range;
         var jsbeautify = require("./jsbeautify/jsbeautify.js");
         
-        var win = gui.Window.get(); 
+        var win = gui.Window.get();
         win.show();
         var fs = require("fs");
         var Path = require("path");
@@ -17,21 +19,51 @@ if(!window.appLoad){
         if(!window.global.OpenerLoaded){
             window.global.OpenerLoaded = true;
             gui.App.on("open",function(filename){
-                OpenFileWindow(filename);
+                OpenFileWindow("Untitled");
+                console.log("App started");
             });
         }
         
         function OpenFileWindow(filename){
+            console.log("OpenFileWindow called: filename = " + filename);
             var win = gui.Window.open('index.html', appconfig.window);
             win.currentFile = filename;
         }
         
         var editor = ace.edit("editor");
         
+        // Changes as of Jan 11, 2014 - Use local storage for persistence
+        // Kevin Caccamo - Added support for showing invisible characters
+        var showingInvisibles = localStorage.getItem("showingInvisibles") == "true" || false;
+        editor.setShowInvisibles(showingInvisibles);
+        // Kevin Caccamo - Allow multiple windows
+        var useMultiWindows = localStorage.getItem("useMultiWindows") == "true" || false;
+        // Kevin Caccamo - Print margin
+        var printMargin = parseInt(localStorage.getItem("printMargin")) || 80;
+        editor.setPrintMarginColumn(printMargin);
+        // Kevin Caccamo - Soft tabs
+        var useSoftTabs = localStorage.getItem("useSoftTabs") == "true" && true;
+        editor.getSession().setUseSoftTabs(useSoftTabs);
+        // Kevin Caccamo - Tab width
+        var tabWidth = parseInt(localStorage.getItem("tabWidth")) || 4;
+        editor.getSession().setTabSize(tabWidth);
+        
+        // KC - Refactor to make beautify a separate function
         editor.commands.addCommand({
             name: 'beautify',
             bindKey: {mac: "Command-Shift-B", win: "Shift-Ctrl-B"},
-            exec: function(editor) {
+            exec: function(){beautify();},
+            readOnly: false // false if this command should not apply in readOnly mode
+        });
+        editor.commands.addCommand({
+            name: 'devtools',
+            bindKey: {mac: "F12", win: "F12"},
+            exec: function(){openDevTools();},
+            readOnly: true
+        });
+        // Available under commands menu
+        
+        function beautify() {
                 
                 var sel = editor.selection;
                 var session = editor.session;
@@ -99,10 +131,11 @@ if(!window.appLoad){
                 var end = session.replace(range, value);
                 sel.setSelectionRange(Range.fromPoints(range.start, end));
                 
-            },
-            readOnly: false // false if this command should not apply in readOnly mode
-        });
+            }
         
+        function openDevTools() {
+            win.showDevTools();
+        }
         
         var theme = window.localStorage.aceTheme || "twilight";
         editor.setTheme("ace/theme/"+theme);
@@ -176,7 +209,8 @@ if(!window.appLoad){
             mode.other = mode[3] == "other" ? true : false;
             mode.ext = mode[1];
             mode.ext.split("|").forEach(function(ext) {
-                fileExtensions[ext] = name;
+                // KC - Don't enforce case sensitivity
+                fileExtensions[ext.toLowerCase()] = name;
             });
             ModesCaption[mode.caption] = name;
             hiddenMode[mode.caption] = mode.hidden;
@@ -215,7 +249,7 @@ if(!window.appLoad){
         editorSession.on("change", function() {
             if (currentFile) {
                 hasChanged = true;
-                $("title").text("*" + currentFile);
+                $("title").text("*" + currentFile + " - " + APP_NAME);
             }
         });
     
@@ -228,36 +262,48 @@ if(!window.appLoad){
         });
         
         function openFile(path) {
-            if (hasChanged && !saveFileFN(true)) return false;
-            currentFile = null;
+            if (hasChanged && window.confirm("Save your changes?")) saveFileFN();
+            currentFile = "Untitled";
             if (path) {
-                var fileMode = fileExtensions[Path.basename(path).split(".")[1]];
-                if (fileMode) {
-                    detectedMode = fileMode;
+                console.log("openFile: path = " + path)
+                if (fs.existsSync(path)) {
+                    currentFile = path;
+                    // KC - Don't enforce case sensitivity
+                    var fileMode = fileExtensions[Path.basename(path).split(".")[1].toLowerCase()];
+                    if (fileMode) {
+                        detectedMode = fileMode;
+                    } else {
+                        detectedMode = "text";
+                    }
                     editor.getSession().setMode("ace/mode/" + fileMode);
+                    editor.getSession().setValue(fs.readFileSync(path, "utf8"));
+                    hasChanged = false;
                 }
-                hasChanged = false;
-                editor.getSession().setValue(fs.readFileSync(path, "utf8"));
-                hasChanged = false;
             }
-            else {
-                path = "Untitled";
-                editor.getSession().setValue("");
-            }
-    
-            currentFile = path;
-            $("title").text(currentFile);
+            $("title").text(currentFile + " - " + APP_NAME);
         }
+        
+        // We do not want to attach event handlers multiple times,
+        // lest the code become unnecessarily inefficient
+        var isSaveAsListenerOn = false;
+        
+        /**
+         * This function triggers a click event on a given file input element to allow the user to save a file with a given name
+         * @param {str} a jQuery selector that gets a file input element
+         */
         function saveasDialog(name) {
             var chooser = $(name);
             chooser.trigger('click');
+            if (!isSaveAsListenerOn)
             chooser.change(function(evt) {
                 var saveFilename = $(this).val();
                 currentFile = saveFilename;
                 hasChanged = true;
+                isSaveAsListenerOn = true;
                 saveFileFN();
             });
         }
+        
         function saveFileFN() {
             if (/*hasChanged &&*/ currentFile !== "Untitled") {
                 var data = editor.getSession().getValue(); //.replace(/\n/g,"\r\n");
@@ -265,7 +311,7 @@ if(!window.appLoad){
                     saveasDialog('#saveasDialog');
                 }else{
                     fs.writeFileSync(currentFile, data, "utf8");
-                    $("title").text(currentFile);
+                    $("title").text(currentFile + " - " + APP_NAME);
                     hasChanged = false;
                 }
             }else{
@@ -274,18 +320,44 @@ if(!window.appLoad){
         }
     
         $("#newFile").click(function() {
-            if (confirm("All Changes will be lost?")) {
-                openFile();
+            function newFile() {
+                console.log("newFile");
+                path = "Untitled";
+                editor.getSession().setValue("");
+                currentFile = path;
+                hasChanged = false;
+                // Required to allow editor to open same file after making new file
+                var fileIn = document.getElementById("openfileDialog");
+                // Temporarily set type to text to allow value to be cleared
+                fileIn.type = "text";
+                fileIn.value = "";
+                fileIn.type = "file";
+                $("title").text(currentFile + " - " + APP_NAME);
+            }
+            if (hasChanged && confirm("Your changes will be lost. Are you sure?")) {
+                newFile();
+            } else if(!hasChanged) {
+                newFile();
             }
         });
+        
+        var isFileOpenListenerOn = false;
         $("#openFile").click(function() {
             function chooseFile(name) {
                 var chooser = $(name);
                 chooser.trigger('click');
+                if (!isFileOpenListenerOn)
                 chooser.change(function(evt) {
                     var openFilename = $(this).val();
-                    //openFile(openFilename);
-                    OpenFileWindow(openFilename);
+                    console.log("chooseFile(change): openFilename = " + openFilename);
+                    // Not sure if I want to have several windows open anymore
+                    if (useMultiWindows) {
+                      if (!currentFile ||
+                           currentFile == "Untitled")
+                           openFile(openFilename);
+                      else OpenFileWindow(openFilename);
+                    } else openFile(openFilename);
+                    isFileOpenListenerOn = true;
                 });
             }
             chooseFile('#openfileDialog');
@@ -362,8 +434,7 @@ if(!window.appLoad){
             $(".navbar-static-top").removeClass("navbar-inverse");
         }
         
-        //Syntax
-        
+        //Set syntax mode on click
         $("[data-mode]").click(function(e) {
             var mode = e.target.attributes["data-mode"].value;
             editor.getSession().setMode("ace/mode/" + mode);
@@ -372,7 +443,7 @@ if(!window.appLoad){
             $("[data-mode='"+mode+"']").parent().addClass("active");
         });
         
-        
+        // Set syntax mode on hover
         $("[data-mode]").hover(function(e){
             var mode = e.target.attributes["data-mode"].value;
             editor.getSession().setMode("ace/mode/" + mode);
@@ -398,6 +469,70 @@ if(!window.appLoad){
     
         $("#windowClose").click(function() {
             win.close();
+        });
+        
+        // Kevin Caccamo's additions
+        
+        // Commands accessible from menu
+        $("#cmd-beautify").click(function(){beautify();});
+        $("#cmd-devtools").click(function(){openDevTools();});
+        
+        // Options
+        // Show invisible characters
+        if (showingInvisibles) $("#opt-showInvisibles>.icon-ok").show();
+        $("#opt-showInvisibles").on("click", function(){
+            showingInvisibles = !showingInvisibles;
+            $(this).children(".icon-ok").toggle();
+            localStorage.setItem("showingInvisibles", showingInvisibles);
+            editor.setShowInvisibles(showingInvisibles);
+        });
+        
+        // Use multiple windows
+        if (useMultiWindows) $("#opt-multiWindows>.icon-ok").show();
+        $("#opt-multiWindows").on("click", function(){
+            useMultiWindows = !useMultiWindows;
+            $(this).children(".icon-ok").toggle();
+            localStorage.setItem("useMultiWindows", useMultiWindows);
+        });
+        
+        // Set print margin
+        $("#opt-setPrintMargin").on("click", function(){
+            var sNewPrintMargin = prompt("Enter new print margin", editor.getPrintMarginColumn());
+            if (!isNaN(sNewPrintMargin)) {
+                if (sNewPrintMargin.search(/\./g) == -1) {
+                    var nNewPrintMargin = parseInt(sNewPrintMargin, 10);
+                    localStorage.setItem("printMargin", sNewPrintMargin);
+                    editor.setPrintMarginColumn(nNewPrintMargin);
+                } else alert("Print margin column must be a whole number.");
+            } else alert("Please enter a numeric value for print margin.");
+        });
+        
+        // Use soft tabs
+        if (!useSoftTabs) $("#opt-useSoftTabs>.icon-ok").hide();
+        $("#opt-useSoftTabs").on("click", function(){
+            useSoftTabs = !useSoftTabs;
+            $(this).children(".icon-ok").toggle();
+            localStorage.setItem("useSoftTabs", useSoftTabs);
+            editor.getSession().setUseSoftTabs(useSoftTabs);
+        });
+        
+        // Set tab width
+        $(".opt-tabWidthPreset").on("click", function(){
+            var newTabWidth = $(this).text();
+            console.log(newTabWidth);
+            editor.getSession().setTabSize(parseInt(newTabWidth, 10));
+        });
+        
+        // User-defined tab width
+        $("#opt-userTabWidth").on("click", function(){
+            var sNewTabWidth = prompt("Enter new tab width", editor.getSession().getTabSize());
+            if (!isNaN(sNewTabWidth)) {
+                if (sNewTabWidth.search(/\./g) == -1) {
+                    var nNewTabWidth = parseInt(sNewTabWidth, 10);
+                    localStorage.setItem("tabWidth", sNewTabWidth);
+                    editor.getSession().setTabSize(nNewTabWidth);
+                } else alert("Tab width must be a whole number.");
+            } else alert("Please enter a numeric value for tab width.");
         });
     };
 }

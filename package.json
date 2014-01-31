@@ -1,6 +1,23 @@
 {
     "name": "Ace File Editor",
     "main": "index.html",
+    "version": "1.0",
+    "description": "An embedded Ace Editor built on node-webkit",
+    "licenses": ["GPL-3.0", "BSD-3-Clause", "MIT"],
+    "author": {
+        "name": "Bradley Matusiak",
+        "email": "bmatusiak@gmail.com",
+        "url": "https://github.com/bmatusiak"
+    },
+    "contributors": [{
+        "name": "Kevin Caccamo",
+        "email": "kevin@ciinet.org",
+        "url": "http://www.ciinet.org/kevin"
+    }],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/brads-tools/node-webkit-ace-editor"
+    },
     "window": {
         "title": "File Editor",
         "toolbar": false,
