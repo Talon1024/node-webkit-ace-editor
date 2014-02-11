@@ -387,6 +387,7 @@ if(!window.appLoad){
             'cobalt',
             'idle_fingers',
             'kr_theme',
+            'kaysee',
             'merbivore',
             'merbivore_soft',
             'mono_industrial',
