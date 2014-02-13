@@ -205,8 +205,8 @@ if(!window.appLoad){
             var mode = SupportedModes[name];
             mode.caption = mode[0];
             mode.mime = mode[2];
-            mode.hidden = mode[3] == "hidden" ? true : false;
-            mode.other = mode[3] == "other" ? true : false;
+            mode.hidden = mode[3] == "hidden";
+            mode.other = mode[3] == "other";
             mode.ext = mode[1];
             mode.ext.split("|").forEach(function(ext) {
                 // KC - Don't enforce case sensitivity
@@ -327,21 +327,11 @@ if(!window.appLoad){
                 currentFile = path;
                 hasChanged = false;
                 // Required to allow editor to open same file after making new file
-                var fileIn = document.getElementById("openfileDialog");
-                // Temporarily set type to text to allow value to be cleared
-                fileIn.type = "text";
-                fileIn.value = "";
-                fileIn.type = "file";
+                document.getElementById("openfileDialog").value = "";
                 $("title").text(currentFile + " - " + APP_NAME);
             }
             if (hasChanged && confirm("Your changes will be lost. Are you sure?")) {
                 newFile();
-            } else if (!hasChanged) {
-                if ( !(editor.getSession().getValue().replace(/\w+/gi) === "") ) {
-                    newFile();
-                } else {
-                    editor.getSession().setValue("");
-                }
             }
         });
         
