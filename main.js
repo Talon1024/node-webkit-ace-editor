@@ -336,8 +336,12 @@ if(!window.appLoad){
             }
             if (hasChanged && confirm("Your changes will be lost. Are you sure?")) {
                 newFile();
-            } else if(!hasChanged) {
-                newFile();
+            } else if (!hasChanged) {
+                if ( !(editor.getSession().getValue().replace(/\w+/gi) === "") ) {
+                    newFile();
+                } else {
+                    editor.getSession().setValue("");
+                }
             }
         });
         
