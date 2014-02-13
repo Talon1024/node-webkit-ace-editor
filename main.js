@@ -332,6 +332,8 @@ if(!window.appLoad){
             }
             if (hasChanged && confirm("Your changes will be lost. Are you sure?")) {
                 newFile();
+            } else if (!hasChanged) {
+                newFile();
             }
         });
         
