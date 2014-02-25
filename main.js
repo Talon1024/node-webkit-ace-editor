@@ -347,12 +347,14 @@ if(!window.appLoad){
                     var openFilename = $(this).val();
                     console.log("chooseFile(change): openFilename = " + openFilename);
                     // Not sure if I want to have several windows open anymore
-                    if (useMultiWindows) {
-                      if (!currentFile ||
-                           currentFile == "Untitled")
-                           openFile(openFilename);
-                      else OpenFileWindow(openFilename);
-                    } else openFile(openFilename);
+                    if (openFilename !== "") {
+                      if (useMultiWindows) {
+                        if (!currentFile ||
+                             currentFile == "Untitled")
+                             openFile(openFilename);
+                        else OpenFileWindow(openFilename);
+                      } else openFile(openFilename);
+                    }
                     isFileOpenListenerOn = true;
                 });
             }
