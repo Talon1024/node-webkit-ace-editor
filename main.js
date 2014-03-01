@@ -270,10 +270,10 @@ if(!window.appLoad){
                     currentFile = path;
                     var currentFileList = new FileList();
                     currentFileList.append(new File(
-                            openFilename,
-                            openFilename.slice(
-                                openFilename.lastIndexOf("/"),
-                                openFilename.length
+                            currentFile,
+                            currentFile.slice(
+                                currentFile.lastIndexOf("/"),
+                                currentFile.length
                             )
                         )
                     );

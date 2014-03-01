@@ -199,18 +199,18 @@ if(!window.appLoad){
             xquery: ["XQuery", "xq", "text/x-xquery"],
             yaml: ["YAML", "yaml", "text/x-yaml"]
         };
-        var fileExtensions = {}, ModesCaption = {}, contentTypes = {}, hiddenMode = {}, otherMode = {};
+        var fileModes = {}, ModesCaption = {}, contentTypes = {}, hiddenMode = {}, otherMode = {};
         var syntaxMenuHtml = "";
         Object.keys(SupportedModes).forEach(function(name) {
             var mode = SupportedModes[name];
             mode.caption = mode[0];
             mode.mime = mode[2];
-            mode.hidden = mode[3] == "hidden" ? true : false;
-            mode.other = mode[3] == "other" ? true : false;
+            mode.hidden = mode[3] == "hidden";
+            mode.other = mode[3] == "other";
             mode.ext = mode[1];
             mode.ext.split("|").forEach(function(ext) {
                 // KC - Don't enforce case sensitivity
-                fileExtensions[ext.toLowerCase()] = name;
+                fileModes[ext.toLowerCase()] = name;
             });
             ModesCaption[mode.caption] = name;
             hiddenMode[mode.caption] = mode.hidden;
@@ -265,17 +265,28 @@ if(!window.appLoad){
             if (hasChanged && window.confirm("Save your changes?")) saveFileFN();
             currentFile = "Untitled";
             if (path) {
-                console.log("openFile: path = " + path)
+                console.log("openFile: path = " + path);
                 if (fs.existsSync(path)) {
                     currentFile = path;
-                    // KC - Don't enforce case sensitivity
-                    var fileMode = fileExtensions[Path.basename(path).split(".")[1].toLowerCase()];
-                    if (fileMode) {
-                        detectedMode = fileMode;
+                    var currentFileList = new FileList();
+                    currentFileList.append(new File(
+                            openFilename,
+                            openFilename.slice(
+                                openFilename.lastIndexOf("/"),
+                                openFilename.length
+                            )
+                        )
+                    );
+                    document.getElementById("saveasDialog").files = currentFileList;
+                    var fileExt = Path.basename(path).split(".")[1];
+                    if (fileExt) {
+                        // KC - Don't enforce case sensitivity
+                        detectedMode = fileModes[fileExt.toLowerCase()];
                     } else {
+                        // Assume files without extensions or unknown extensions are text files
                         detectedMode = "text";
                     }
-                    editor.getSession().setMode("ace/mode/" + fileMode);
+                    editor.getSession().setMode("ace/mode/" + detectedMode);
                     editor.getSession().setValue(fs.readFileSync(path, "utf8"));
                     hasChanged = false;
                 }
@@ -286,6 +297,7 @@ if(!window.appLoad){
         // We do not want to attach event handlers multiple times,
         // lest the code become unnecessarily inefficient
         var isSaveAsListenerOn = false;
+        var isFileOpenListenerOn = false;
         
         /**
          * This function triggers a click event on a given file input element to allow the user to save a file with a given name
@@ -298,6 +310,16 @@ if(!window.appLoad){
             chooser.change(function(evt) {
                 var saveFilename = $(this).val();
                 currentFile = saveFilename;
+                var currentFileList = new FileList();
+                currentFileList.append(new File(
+                        currentFile,
+                        currentFile.slice(
+                            currentFile.lastIndexOf("/"),
+                            currentFile.length
+                        )
+                    )
+                );
+                document.getElementById("openfileDialog").files = currentFileList;
                 hasChanged = true;
                 isSaveAsListenerOn = true;
                 saveFileFN();
@@ -309,7 +331,9 @@ if(!window.appLoad){
                 var data = editor.getSession().getValue(); //.replace(/\n/g,"\r\n");
                 if(currentFile == "Untitled"){
                     saveasDialog('#saveasDialog');
-                }else{
+                } else if (currentFile === "") {
+                    false;
+                } else {
                     fs.writeFileSync(currentFile, data, "utf8");
                     $("title").text(currentFile + " - " + APP_NAME);
                     hasChanged = false;
@@ -327,21 +351,17 @@ if(!window.appLoad){
                 currentFile = path;
                 hasChanged = false;
                 // Required to allow editor to open same file after making new file
-                var fileIn = document.getElementById("openfileDialog");
-                // Temporarily set type to text to allow value to be cleared
-                fileIn.type = "text";
-                fileIn.value = "";
-                fileIn.type = "file";
+                document.getElementById("openfileDialog").value = "";
+                document.getElementById("saveasDialog").value = "";
                 $("title").text(currentFile + " - " + APP_NAME);
             }
             if (hasChanged && confirm("Your changes will be lost. Are you sure?")) {
                 newFile();
-            } else if(!hasChanged) {
+            } else if (!hasChanged) {
                 newFile();
             }
         });
         
-        var isFileOpenListenerOn = false;
         $("#openFile").click(function() {
             function chooseFile(name) {
                 var chooser = $(name);
@@ -351,12 +371,14 @@ if(!window.appLoad){
                     var openFilename = $(this).val();
                     console.log("chooseFile(change): openFilename = " + openFilename);
                     // Not sure if I want to have several windows open anymore
-                    if (useMultiWindows) {
-                      if (!currentFile ||
-                           currentFile == "Untitled")
-                           openFile(openFilename);
-                      else OpenFileWindow(openFilename);
-                    } else openFile(openFilename);
+                    if (openFilename !== "") {
+                      if (useMultiWindows) {
+                        if (!currentFile ||
+                             currentFile == "Untitled")
+                             openFile(openFilename);
+                        else OpenFileWindow(openFilename);
+                      } else openFile(openFilename);
+                    }
                     isFileOpenListenerOn = true;
                 });
             }
@@ -387,6 +409,7 @@ if(!window.appLoad){
             'cobalt',
             'idle_fingers',
             'kr_theme',
+            'kaysee',
             'merbivore',
             'merbivore_soft',
             'mono_industrial',
