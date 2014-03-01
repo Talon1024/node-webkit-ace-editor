@@ -309,7 +309,9 @@ if(!window.appLoad){
                 var data = editor.getSession().getValue(); //.replace(/\n/g,"\r\n");
                 if(currentFile == "Untitled"){
                     saveasDialog('#saveasDialog');
-                }else{
+                } else if (currentFile === "") {
+                    false;
+                } else {
                     fs.writeFileSync(currentFile, data, "utf8");
                     $("title").text(currentFile + " - " + APP_NAME);
                     hasChanged = false;
