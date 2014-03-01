@@ -298,6 +298,8 @@ if(!window.appLoad){
         // lest the code become unnecessarily inefficient
         var isSaveAsListenerOn = false;
         var isFileOpenListenerOn = false;
+        // Prevent triggering of a change event on file input/output dialogs
+        var fileDialogClicked;
         
         /**
          * This function triggers a click event on a given file input element to allow the user to save a file with a given name
@@ -306,23 +308,27 @@ if(!window.appLoad){
         function saveasDialog(name) {
             var chooser = $(name);
             chooser.trigger('click');
+            fileDialogClicked = true;
             if (!isSaveAsListenerOn)
             chooser.change(function(evt) {
-                var saveFilename = $(this).val();
-                currentFile = saveFilename;
-                var currentFileList = new FileList();
-                currentFileList.append(new File(
-                        currentFile,
-                        currentFile.slice(
-                            currentFile.lastIndexOf("/"),
-                            currentFile.length
+                if (fileDialogClicked) {
+                    fileDialogClicked = false;
+                    var saveFilename = $(this).val();
+                    currentFile = saveFilename;
+                    var currentFileList = new FileList();
+                    currentFileList.append(new File(
+                            currentFile,
+                            currentFile.slice(
+                                currentFile.lastIndexOf("/"),
+                                currentFile.length
+                            )
                         )
-                    )
-                );
-                document.getElementById("openfileDialog").files = currentFileList;
-                hasChanged = true;
-                isSaveAsListenerOn = true;
-                saveFileFN();
+                    );
+                    document.getElementById("openfileDialog").files = currentFileList;
+                    hasChanged = true;
+                    isSaveAsListenerOn = true;
+                    saveFileFN();
+                }
             });
         }
         
@@ -366,20 +372,24 @@ if(!window.appLoad){
             function chooseFile(name) {
                 var chooser = $(name);
                 chooser.trigger('click');
+                fileDialogClicked = true;
                 if (!isFileOpenListenerOn)
                 chooser.change(function(evt) {
-                    var openFilename = $(this).val();
-                    console.log("chooseFile(change): openFilename = " + openFilename);
-                    // Not sure if I want to have several windows open anymore
-                    if (openFilename !== "") {
-                      if (useMultiWindows) {
-                        if (!currentFile ||
-                             currentFile == "Untitled")
-                             openFile(openFilename);
-                        else OpenFileWindow(openFilename);
-                      } else openFile(openFilename);
+                    if (fileDialogClicked) {
+                        fileDialogClicked = false;
+                        var openFilename = $(this).val();
+                        console.log("chooseFile(change): openFilename = " + openFilename);
+                        // Not sure if I want to have several windows open anymore
+                        if (openFilename !== "") {
+                          if (useMultiWindows) {
+                            if (!currentFile ||
+                                 currentFile == "Untitled")
+                                 openFile(openFilename);
+                            else OpenFileWindow(openFilename);
+                          } else openFile(openFilename);
+                        }
+                        isFileOpenListenerOn = true;
                     }
-                    isFileOpenListenerOn = true;
                 });
             }
             chooseFile('#openfileDialog');
