@@ -298,6 +298,7 @@ if(!window.appLoad){
             chooser.change(function(evt) {
                 var saveFilename = $(this).val();
                 currentFile = saveFilename;
+                document.getElementById("openfileDialog").value = currentFile;
                 hasChanged = true;
                 isSaveAsListenerOn = true;
                 saveFileFN();
@@ -330,6 +331,7 @@ if(!window.appLoad){
                 hasChanged = false;
                 // Required to allow editor to open same file after making new file
                 document.getElementById("openfileDialog").value = "";
+                document.getElementById("saveasDialog").value = "";
                 $("title").text(currentFile + " - " + APP_NAME);
             }
             if (hasChanged && confirm("Your changes will be lost. Are you sure?")) {
@@ -347,6 +349,7 @@ if(!window.appLoad){
                 if (!isFileOpenListenerOn)
                 chooser.change(function(evt) {
                     var openFilename = $(this).val();
+                    document.getElementById("saveasDialog").value = ""
                     console.log("chooseFile(change): openFilename = " + openFilename);
                     // Not sure if I want to have several windows open anymore
                     if (openFilename !== "") {
