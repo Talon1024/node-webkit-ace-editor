@@ -199,7 +199,7 @@ if(!window.appLoad){
             xquery: ["XQuery", "xq", "text/x-xquery"],
             yaml: ["YAML", "yaml", "text/x-yaml"]
         };
-        var fileExtensions = {}, ModesCaption = {}, contentTypes = {}, hiddenMode = {}, otherMode = {};
+        var fileModes = {}, ModesCaption = {}, contentTypes = {}, hiddenMode = {}, otherMode = {};
         var syntaxMenuHtml = "";
         Object.keys(SupportedModes).forEach(function(name) {
             var mode = SupportedModes[name];
@@ -210,7 +210,7 @@ if(!window.appLoad){
             mode.ext = mode[1];
             mode.ext.split("|").forEach(function(ext) {
                 // KC - Don't enforce case sensitivity
-                fileExtensions[ext.toLowerCase()] = name;
+                fileModes[ext.toLowerCase()] = name;
             });
             ModesCaption[mode.caption] = name;
             hiddenMode[mode.caption] = mode.hidden;
@@ -268,14 +268,15 @@ if(!window.appLoad){
                 console.log("openFile: path = " + path)
                 if (fs.existsSync(path)) {
                     currentFile = path;
-                    // KC - Don't enforce case sensitivity
-                    var fileMode = fileExtensions[Path.basename(path).split(".")[1].toLowerCase()];
-                    if (fileMode) {
-                        detectedMode = fileMode;
+                    var fileExt = Path.basename(path).split(".")[1];
+                    if (fileExt) {
+                        // KC - Don't enforce case sensitivity
+                        detectedMode = fileModes[fileExt.toLowerCase()];
                     } else {
+                        // Assume files without extensions are text files
                         detectedMode = "text";
                     }
-                    editor.getSession().setMode("ace/mode/" + fileMode);
+                    editor.getSession().setMode("ace/mode/" + detectedMode);
                     editor.getSession().setValue(fs.readFileSync(path, "utf8"));
                     hasChanged = false;
                 }
