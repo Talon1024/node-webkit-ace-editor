@@ -265,15 +265,25 @@ if(!window.appLoad){
             if (hasChanged && window.confirm("Save your changes?")) saveFileFN();
             currentFile = "Untitled";
             if (path) {
-                console.log("openFile: path = " + path)
+                console.log("openFile: path = " + path);
                 if (fs.existsSync(path)) {
                     currentFile = path;
+                    var currentFileList = new FileList();
+                    currentFileList.append(new File(
+                            openFilename,
+                            openFilename.slice(
+                                openFilename.lastIndexOf("/"),
+                                openFilename.length
+                            )
+                        )
+                    );
+                    document.getElementById("saveasDialog").files = currentFileList;
                     var fileExt = Path.basename(path).split(".")[1];
                     if (fileExt) {
                         // KC - Don't enforce case sensitivity
                         detectedMode = fileModes[fileExt.toLowerCase()];
                     } else {
-                        // Assume files without extensions are text files
+                        // Assume files without extensions or unknown extensions are text files
                         detectedMode = "text";
                     }
                     editor.getSession().setMode("ace/mode/" + detectedMode);
@@ -287,6 +297,7 @@ if(!window.appLoad){
         // We do not want to attach event handlers multiple times,
         // lest the code become unnecessarily inefficient
         var isSaveAsListenerOn = false;
+        var isFileOpenListenerOn = false;
         
         /**
          * This function triggers a click event on a given file input element to allow the user to save a file with a given name
@@ -299,7 +310,16 @@ if(!window.appLoad){
             chooser.change(function(evt) {
                 var saveFilename = $(this).val();
                 currentFile = saveFilename;
-                document.getElementById("openfileDialog").value = currentFile;
+                var currentFileList = new FileList();
+                currentFileList.append(new File(
+                        currentFile,
+                        currentFile.slice(
+                            currentFile.lastIndexOf("/"),
+                            currentFile.length
+                        )
+                    )
+                );
+                document.getElementById("openfileDialog").files = currentFileList;
                 hasChanged = true;
                 isSaveAsListenerOn = true;
                 saveFileFN();
@@ -342,7 +362,6 @@ if(!window.appLoad){
             }
         });
         
-        var isFileOpenListenerOn = false;
         $("#openFile").click(function() {
             function chooseFile(name) {
                 var chooser = $(name);
@@ -350,7 +369,6 @@ if(!window.appLoad){
                 if (!isFileOpenListenerOn)
                 chooser.change(function(evt) {
                     var openFilename = $(this).val();
-                    document.getElementById("saveasDialog").value = ""
                     console.log("chooseFile(change): openFilename = " + openFilename);
                     // Not sure if I want to have several windows open anymore
                     if (openFilename !== "") {
