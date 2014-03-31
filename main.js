@@ -15,6 +15,7 @@ if(!window.appLoad){
         win.show();
         var fs = require("fs");
         var Path = require("path");
+        // var DEBUG_util = require("util");
     
         if(!window.global.OpenerLoaded){
             window.global.OpenerLoaded = true;
@@ -232,16 +233,24 @@ if(!window.appLoad){
                 fs.existsSync(process._nw_app.argv[0]) ?
                 process._nw_app.argv[0] : 
                 null ;
+                /*
+                // Use a more readable self-invoking anonymous
+                // function that returns the value we want
+                (function(currentFile){
+                    
+                })(currentFile);
+                */
         
-        if(win.currentFile){
+        if (win.currentFile) {
             openFile(currentFile);
-        }else if (process && process._nw_app && fs.existsSync(process._nw_app.argv[0])) {
-            try{
+        } else if (process._nw_app.argv.length
+                && fs.existsSync(process._nw_app.argv[0])) {
+            try {
                 openFile(process._nw_app.argv[0]);
-            }catch(e){
+            } catch(e) {
                 console.log(e);
             }
-        }else{
+        } else {
             openFile();
         }
     
@@ -268,15 +277,20 @@ if(!window.appLoad){
                 console.log("openFile: path = " + path);
                 if (fs.existsSync(path)) {
                     currentFile = path;
+                    // fs.appendFileSync("debug.txt", "currentFile: "); // Debug
+                    // fs.appendFileSync("debug.txt", DEBUG_util.inspect(currentFile)); // Debug
+                    // fs.appendFileSync("debug.txt", "\n"); // Debug
                     var currentFileList = new FileList();
                     currentFileList.append(new File(
                             currentFile,
-                            currentFile.slice(
-                                currentFile.lastIndexOf("/"),
-                                currentFile.length
-                            )
+                            Path.basename(currentFile)
                         )
                     );
+                    // fs.appendFileSync("debug.txt", "currentFileList: "); // Debug
+                    // fs.appendFileSync("debug.txt", DEBUG_util.inspect(currentFileList)); // Debug
+                    // fs.appendFileSync("debug.txt", "\n"); // Debug
+                    // fs.appendFileSync("debug.txt", "Document object available: "); // Debug
+                    // fs.appendFileSync("debug.txt", document ? "Yes\n" : "No\n"); // Debug
                     document.getElementById("saveasDialog").files = currentFileList;
                     var fileExt = Path.basename(path).split(".")[1];
                     if (fileExt) {

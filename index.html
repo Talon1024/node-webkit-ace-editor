@@ -102,13 +102,13 @@
 		</div>
 		<div id="editor"></div>
 		<script src="main.js"></script>
+		<input style="display:none;" id="openfileDialog" type="file"/>
+		<input style="display:none;" id="saveasDialog"  type="file" nwsaveas />
 		<script>
 			(function(){
 				var gui = require('nw.gui');
 				window.appLoad(gui);
 			})();
 		</script>
-		<input style="display:none;" id="openfileDialog" type="file"/>
-		<input style="display:none;" id="saveasDialog"  type="file" nwsaveas />
 	</body>
 </html>
