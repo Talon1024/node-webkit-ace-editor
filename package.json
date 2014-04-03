@@ -23,7 +23,7 @@
         "toolbar": false,
         "position": "center",
         "width": 800,
-        "height": 700,
+        "height": 600,
         "resizable": true,
         "show": false,
 	    "frame": true
