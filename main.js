@@ -593,7 +593,10 @@ if(!window.appLoad){
             var newFontFace = prompt("Enter new font face, or blank to reset.");
             localStorage.setItem("fontFace", newFontFace);
             if (newFontFace !== "") document.getElementById("editor").style.fontFamily = newFontFace;
-            else document.getElementById("editor").style.fontFamily = "";
+            else {
+                document.getElementById("editor").style.fontFamily = "";
+                localStorage.setItem("fontFace", "");
+            }
         });
         
         // User-defined font size
@@ -607,7 +610,10 @@ if(!window.appLoad){
                         document.getElementById("editor").style.fontSize = nNewFontSize + "px";
                     } else alert("Font size must be a whole number.");
                 } else alert("Please enter a numeric value for font size.");
-            } else document.getElementById("editor").style.fontSize = "";
+            } else {
+                document.getElementById("editor").style.fontSize = "";
+                localStorage.setItem("fontSize", "");
+            }
         });
     };
 }
