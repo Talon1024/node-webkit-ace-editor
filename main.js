@@ -48,6 +48,12 @@ if(!window.appLoad){
         // Kevin Caccamo - Tab width
         var tabWidth = parseInt(localStorage.getItem("tabWidth")) || 4;
         editor.getSession().setTabSize(tabWidth);
+        // Font face
+        var fontFace = localStorage.getItem("fontFace") || "";
+        document.getElementById("editor").style.fontFamily = fontFace;
+        // Font size
+        var fontSize = localStorage.getItem("fontSize") || "";
+        document.getElementById("editor").style.fontSize = (fontSize !== "") ? fontSize + "px" : "";
         
         // KC - Refactor to make beautify a separate function
         editor.commands.addCommand({
@@ -580,6 +586,28 @@ if(!window.appLoad){
                     editor.getSession().setTabSize(nNewTabWidth);
                 } else alert("Tab width must be a whole number.");
             } else alert("Please enter a numeric value for tab width.");
+        });
+        
+        // User-defined font face
+        $("#opt-setFontFace").on("click", function(){
+            var newFontFace = prompt("Enter new font face, or blank to reset.");
+            localStorage.setItem("fontFace", newFontFace);
+            if (newFontFace !== "") document.getElementById("editor").style.fontFamily = newFontFace;
+            else document.getElementById("editor").style.fontFamily = "";
+        });
+        
+        // User-defined font size
+        $("#opt-setFontSize").on("click", function(){
+            var sNewFontSize = prompt("Enter new font size, or blank to reset.");
+            if (sNewFontSize !== "") {
+                if (!isNaN(sNewFontSize)) {
+                    if (sNewFontSize.search(/\./g) == -1) {
+                        var nNewFontSize = parseInt(sNewFontSize, 10);
+                        localStorage.setItem("fontSize", sNewFontSize);
+                        document.getElementById("editor").style.fontSize = nNewFontSize + "px";
+                    } else alert("Font size must be a whole number.");
+                } else alert("Please enter a numeric value for font size.");
+            } else document.getElementById("editor").style.fontSize = "";
         });
     };
 }
