@@ -590,10 +590,15 @@ if(!window.appLoad){
         
         // User-defined font face
         $("#opt-setFontFace").on("click", function(){
-            var newFontFace = prompt("Enter new font face, or blank to reset.");
-            localStorage.setItem("fontFace", newFontFace);
-            if (newFontFace !== "") document.getElementById("editor").style.fontFamily = newFontFace;
-            else {
+            var sNewFontFace = prompt("Enter new font face, or blank to reset.", fontFace);
+            localStorage.setItem("fontFace", sNewFontFace);
+            if (sNewFontFace !== "" && sNewFontFace !== null) {
+                document.getElementById("editor").style.fontFamily = sNewFontFace;
+                fontFace = sNewFontFace;
+            } else if (sNewFontFace === null) {
+                // Do nothing
+            } else {
+                fontFace = "";
                 document.getElementById("editor").style.fontFamily = "";
                 localStorage.setItem("fontFace", "");
             }
@@ -601,16 +606,20 @@ if(!window.appLoad){
         
         // User-defined font size
         $("#opt-setFontSize").on("click", function(){
-            var sNewFontSize = prompt("Enter new font size, or blank to reset.");
-            if (sNewFontSize !== "") {
+            var sNewFontSize = prompt("Enter new font size, or blank to reset.", fontSize);
+            if (sNewFontSize !== "" && sNewFontSize !== null) {
                 if (!isNaN(sNewFontSize)) {
                     if (sNewFontSize.search(/\./g) == -1) {
+                        fontSize = sNewFontSize;
                         var nNewFontSize = parseInt(sNewFontSize, 10);
                         localStorage.setItem("fontSize", sNewFontSize);
                         document.getElementById("editor").style.fontSize = nNewFontSize + "px";
                     } else alert("Font size must be a whole number.");
                 } else alert("Please enter a numeric value for font size.");
+            } else if (sNewFontSize === null) {
+                // Do nothing
             } else {
+                fontSize = "";
                 document.getElementById("editor").style.fontSize = "";
                 localStorage.setItem("fontSize", "");
             }
