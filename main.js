@@ -40,16 +40,16 @@ if(!window.appLoad){
         // Kevin Caccamo - Allow multiple windows
         var useMultiWindows = localStorage.getItem("useMultiWindows") == "true" || false;
         // Kevin Caccamo - Print margin
-        var printMargin = parseInt(localStorage.getItem("printMargin")) || 80;
+        var printMargin = parseInt(localStorage.getItem("printMargin"), 10) || 80;
         editor.setPrintMarginColumn(printMargin);
         // Kevin Caccamo - Soft tabs
         var useSoftTabs = localStorage.getItem("useSoftTabs") == "true" && true;
         editor.getSession().setUseSoftTabs(useSoftTabs);
         // Kevin Caccamo - Tab width
-        var tabWidth = parseInt(localStorage.getItem("tabWidth")) || 4;
+        var tabWidth = parseInt(localStorage.getItem("tabWidth"), 10) || 4;
         editor.getSession().setTabSize(tabWidth);
         // Font face
-        var fontFace = localStorage.getItem("fontFace") || "";
+        var fontFace = (localStorage.getItem("fontFace") === "null") ? "" : localStorage.getItem("fontFace");
         document.getElementById("editor").style.fontFamily = fontFace;
         // Font size
         var fontSize = localStorage.getItem("fontSize") || "";
