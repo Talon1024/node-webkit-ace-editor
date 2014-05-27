@@ -571,9 +571,10 @@ if(!window.appLoad){
         
         // Set tab width
         $(".opt-tabWidthPreset").on("click", function(){
-            var newTabWidth = $(this).text();
+            var newTabWidth = parseInt($(this).text(), 10);
             console.log(newTabWidth);
-            editor.getSession().setTabSize(parseInt(newTabWidth, 10));
+            editor.getSession().setTabSize(newTabWidth);
+            localStorage.setItem("tabWidth", newTabWidth);
         });
         
         // User-defined tab width
