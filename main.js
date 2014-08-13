@@ -150,6 +150,7 @@ if(!window.appLoad){
         // name: ["Menu caption", "extensions", "content-type", "hidden|other"]
         var SupportedModes = {
             abap: ["ABAP", "abap", "text/x-abap", "other"],
+            applescript: ["AppleScript", "applescript", "text/x-applescript"],
             asciidoc: ["AsciiDoc", "asciidoc", "text/x-asciidoc", "other"],
             c9search: ["C9Search", "c9search", "text/x-c9search", "hidden"],
             c_cpp: ["C, C++", "c|cc|cpp|cxx|h|hh|hpp", "text/x-c"],
@@ -160,6 +161,9 @@ if(!window.appLoad){
             css: ["CSS", "css", "text/css"],
             dart: ["Dart", "dart", "text/x-dart"],
             diff: ["Diff", "diff|patch", "text/x-diff", "other"],
+            dockerfile: ["Docker", "dock", "text/x-docker", "other"],
+            gherkin: ["Gherkin", "feature", "text/x-gherkin", "other"],
+            gitignore: ["Git Ignore", "gitignore", "text/x-gitignore", "other"],
             glsl: ["Glsl", "glsl|frag|vert", "text/x-glsl", "other"],
             golang: ["Go", "go", "text/x-go"],
             groovy: ["Groovy", "groovy", "text/x-groovy", "other"],
@@ -195,6 +199,7 @@ if(!window.appLoad){
             scala: ["Scala", "scala", "text/x-scala"],
             scss: ["SCSS", "scss|sass", "text/x-scss"],
             sh: ["SH", "sh|bash|bat", "application/x-sh"],
+            smarty: ["Smarty", "tpl", "text/x-smarty", "other"],
             stylus: ["Stylus", "styl|stylus", "text/x-stylus"],
             sql: ["SQL", "sql", "text/x-sql"],
             svg: ["SVG", "svg", "image/svg+xml", "other"],
@@ -202,6 +207,7 @@ if(!window.appLoad){
             text: ["Text", "txt", "text/plain", "hidden"],
             textile: ["Textile", "textile", "text/x-web-textile", "other"],
             typescript: ["Typescript", "ts|str", "text/x-typescript"],
+            vala: ["Vala", "vala", "text/vala"],
             xml: ["XML", "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl", "application/xml"],
             xquery: ["XQuery", "xq", "text/x-xquery"],
             yaml: ["YAML", "yaml", "text/x-yaml"]
@@ -306,6 +312,8 @@ if(!window.appLoad){
                         // Assume files without extensions or unknown extensions are text files
                         detectedMode = "text";
                     }
+                    $("#syntaxMenu .active").removeClass("active");
+                    $("#syntaxMenu a[data-mode='" + detectedMode + "']").parent().addClass("active");
                     editor.getSession().setMode("ace/mode/" + detectedMode);
                     editor.getSession().setValue(fs.readFileSync(path, "utf8"));
                     hasChanged = false;
